@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="AddCustomFlower cheat code builder for Hello Kitty Island Adventure.">
+  <title>HKIA AddCustomFlower Builder</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="hero">
+      <div>
+        <div class="game-name">Hello Kitty Island Adventure</div>
+        <h1>AddCustomFlower Builder</h1>
+      </div>
+      <div id="buildBadge" class="version-badge" aria-label="Selected build ID"></div>
+    </header>
+
+    <section class="card controls-card" aria-label="Flower parameters">
+      <div class="control-grid">
+        <label class="field version-field">
+          <span>Game Version</span>
+          <select id="gameVersion"></select>
+        </label>
+
+        <label class="field">
+          <span>Flower Type</span>
+          <select id="flower"></select>
+        </label>
+
+        <label class="field">
+          <span>Grow State</span>
+          <select id="grow"></select>
+        </label>
+
+        <label class="field">
+          <span>Base Color</span>
+          <select id="baseColor"></select>
+        </label>
+
+        <label class="field">
+          <span>Special</span>
+          <select id="specialType">
+            <option value="none">None</option>
+            <option value="pattern">Pattern</option>
+            <option value="effect">Effect</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Pattern / Effect</span>
+          <select id="specialValue" disabled></select>
+        </label>
+
+        <label class="field">
+          <span>Pattern Color</span>
+          <select id="patternColor" disabled></select>
+        </label>
+
+        <label class="field">
+          <span>Quantity</span>
+          <select id="quantity"></select>
+        </label>
+      </div>
+
+      <div id="compat" class="compatibility is-neutral" hidden></div>
+    </section>
+
+    <section class="card output-card" aria-label="Generated cheat code">
+      <div class="output-header">
+        <span>Generated Cheat</span>
+        <button id="copy" type="button">Copy Code</button>
+      </div>
+      <pre id="output" class="code-output" tabindex="0"></pre>
+    </section>
+  </main>
+</body>
+</html>

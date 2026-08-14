@@ -1,0 +1,237 @@
+:root {
+  --page-a: #fff7fb;
+  --page-b: #f7f5ff;
+  --page-c: #f2fbff;
+  --surface: rgba(255, 255, 255, 0.88);
+  --text: #514a5d;
+  --muted: #8a8296;
+  --border: #eadff0;
+  --pink: #f4bfd6;
+  --pink-strong: #e99cbe;
+  --good-bg: #effaf4;
+  --good-border: #bfe7cf;
+  --warn-bg: #fff8ec;
+  --warn-border: #f0d59c;
+  --code-bg: #fffafd;
+  --shadow: 0 14px 38px rgba(108, 83, 121, 0.10);
+}
+
+* { box-sizing: border-box; }
+
+html { min-height: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: Inter, ui-rounded, "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at 10% 10%, rgba(244, 191, 214, 0.42), transparent 28%),
+    radial-gradient(circle at 90% 12%, rgba(207, 233, 247, 0.55), transparent 30%),
+    radial-gradient(circle at 80% 88%, rgba(204, 238, 221, 0.45), transparent 30%),
+    linear-gradient(135deg, var(--page-a), var(--page-b) 52%, var(--page-c));
+}
+
+button, select { font: inherit; }
+
+.app-shell {
+  width: min(980px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 28px 0 44px;
+}
+
+.hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 18px;
+}
+
+.game-name {
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  color: #594f67;
+}
+
+.version-badge {
+  flex: 0 0 auto;
+  max-width: 260px;
+  padding: 8px 13px;
+  border: 1px solid #e4d8ee;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #fff, #f6f0ff);
+  box-shadow: 0 6px 18px rgba(108, 83, 121, 0.07);
+  color: #7d6b8c;
+  font-size: 0.78rem;
+  font-weight: 800;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+.card {
+  border: 1px solid rgba(234, 223, 240, 0.95);
+  border-radius: 22px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(8px);
+}
+
+.controls-card { padding: 18px; }
+
+.control-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.field {
+  display: grid;
+  gap: 7px;
+}
+
+.field > span {
+  padding-left: 2px;
+  color: #746a80;
+  font-size: 0.79rem;
+  font-weight: 800;
+}
+
+.version-field select {
+  border-color: #d7ccf0;
+  background: linear-gradient(135deg, #fff, #fbf8ff);
+  font-weight: 800;
+}
+
+select {
+  width: 100%;
+  min-height: 44px;
+  padding: 9px 36px 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  outline: none;
+  background-color: rgba(255, 255, 255, 0.96);
+  color: var(--text);
+  transition: border-color 130ms ease, box-shadow 130ms ease, transform 130ms ease;
+}
+
+.field:nth-child(2) select { border-color: #eecddd; }
+.field:nth-child(3) select { border-color: #d8e9d8; }
+.field:nth-child(4) select { border-color: #f2d9c5; }
+.field:nth-child(5) select,
+.field:nth-child(6) select { border-color: #ddd1f2; }
+.field:nth-child(7) select { border-color: #f2ccdf; }
+.field:nth-child(8) select { border-color: #cfe2f0; }
+
+select:focus {
+  border-color: var(--pink-strong);
+  box-shadow: 0 0 0 4px rgba(244, 191, 214, 0.22);
+}
+
+select:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+  background: #f7f3f8;
+}
+
+.compatibility {
+  margin-top: 14px;
+  padding: 10px 12px;
+  border: 1px solid;
+  border-radius: 13px;
+  font-size: 0.81rem;
+  line-height: 1.4;
+}
+
+.compatibility.is-good {
+  border-color: var(--good-border);
+  background: var(--good-bg);
+  color: #567563;
+}
+
+.compatibility.is-warn {
+  border-color: var(--warn-border);
+  background: var(--warn-bg);
+  color: #826b3c;
+}
+
+.output-card {
+  margin-top: 16px;
+  overflow: hidden;
+}
+
+.output-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 15px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(90deg, rgba(244, 191, 214, 0.18), rgba(216, 205, 247, 0.16), rgba(207, 233, 247, 0.18));
+  color: #756981;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+button {
+  border: 1px solid #e8c6d7;
+  border-radius: 999px;
+  padding: 8px 14px;
+  cursor: pointer;
+  background: linear-gradient(135deg, #ffe7f1, #f0e8ff);
+  color: #745d70;
+  font-size: 0.79rem;
+  font-weight: 800;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(135, 97, 122, 0.12);
+}
+
+button:active { transform: translateY(0); }
+
+.code-output {
+  margin: 0;
+  min-height: 430px;
+  overflow: auto;
+  padding: 16px;
+  background: var(--code-bg);
+  color: #51495b;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 0.80rem;
+  line-height: 1.55;
+  white-space: pre;
+  tab-size: 2;
+}
+
+@media (max-width: 760px) {
+  .app-shell {
+    width: min(100% - 22px, 980px);
+    padding-top: 18px;
+  }
+
+  .control-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .card { border-radius: 18px; }
+}
+
+@media (max-width: 520px) {
+  .hero { align-items: center; }
+  .game-name { font-size: 0.72rem; }
+  .version-badge { padding: 7px 10px; font-size: 0.70rem; max-width: 190px; }
+  .control-grid { grid-template-columns: 1fr; }
+  .code-output { min-height: 390px; font-size: 0.73rem; }
+}
