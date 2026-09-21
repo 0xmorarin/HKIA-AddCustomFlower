@@ -1,4 +1,3 @@
-
 const FLOWERS = {
   "Anemone": 0x27D6F8E5,
   "Bellbutton": 0x75557786,
