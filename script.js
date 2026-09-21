@@ -329,6 +329,7 @@ function updateSpecialControls() {
   if (type === "pattern") {
     fillSelect(special, Object.keys(profile.patterns), special.value || "Ombre");
     special.disabled = false;
+    fillSelect(patternColor, Object.keys(profile.colors), patternColor.value || DEFAULTS.patternColor);
     patternColor.disabled = false;
     return;
   }
@@ -427,12 +428,20 @@ function updateCompatibility() {
 
   box.hidden = false;
   const profile = selectedProfile();
+  const sameColor = type === "pattern" &&
+    profile.colors[$("baseColor").value] === profile.colors[$("patternColor").value];
+  const sameColorMessage = sameColor
+    ? "Base Color and Pattern Color are the same. The pattern may appear as a solid color."
+    : "";
   const table = type === "effect" ? profile.effectsCompatibility : profile.compatibility;
   const label = type === "effect" ? "Effect" : "Pattern";
 
   if (!table) {
     box.className = "compatibility is-warn";
-    box.textContent = `${label} compatibility has not been verified for this version. The code can still generate it.`;
+    box.textContent = [
+      `${label} compatibility has not been verified for this version. The code can still generate it.`,
+      sameColorMessage
+    ].filter(Boolean).join(" ");
     return;
   }
 
@@ -441,15 +450,19 @@ function updateCompatibility() {
   const available = table[flower];
   if (!available) {
     box.className = "compatibility is-warn";
-    box.textContent = `${label} compatibility is unknown for ${flower} in this version.`;
+    box.textContent = [
+      `${label} compatibility is unknown for ${flower} in this version.`,
+      sameColorMessage
+    ].filter(Boolean).join(" ");
     return;
   }
 
   const listed = available.includes(special);
-  box.className = `compatibility ${listed ? "is-good" : "is-warn"}`;
-  box.textContent = listed
+  box.className = `compatibility ${listed && !sameColor ? "is-good" : "is-warn"}`;
+  const compatibilityMessage = listed
     ? `${special} is listed for ${flower} in this version's internal CrosstypePatterns data.`
     : `${special} is not listed for ${flower} in this version's internal CrosstypePatterns data. The code can still generate it.`;
+  box.textContent = [compatibilityMessage, sameColorMessage].filter(Boolean).join(" ");
 }
 
 function render() {
@@ -514,7 +527,7 @@ function init() {
   ]) {
     $(id).addEventListener("change", () => {
       if (id === "gameVersion") updateVersionControls();
-      if (id === "specialType") updateSpecialControls();
+      if (id === "specialType" || id === "baseColor") updateSpecialControls();
       render();
     });
   }
