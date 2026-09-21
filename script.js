@@ -1,3 +1,4 @@
+
 const FLOWERS = {
   "Anemone": 0x27D6F8E5,
   "Bellbutton": 0x75557786,
@@ -117,12 +118,58 @@ const PATTERN_COMPAT_BY_VERSION = {
   }
 };
 
-PATTERN_COMPAT_BY_VERSION["2.17.2"] =
-  PATTERN_COMPAT_BY_VERSION["2.17.1"];
+PATTERN_COMPAT_BY_VERSION["2.18.1"] = Object.fromEntries(
+  Object.entries(PATTERN_COMPAT_BY_VERSION["2.17.1"]).map(
+    ([flower, patterns]) => [flower, [...patterns]]
+  )
+);
+
+const VERIFIED_EFFECT_COMPATIBILITY = Object.fromEntries(
+  Object.keys(FLOWERS).map((flower) => [flower, Object.keys(EFFECTS)])
+);
 
 const VERSION_PROFILES = {
-    "2.17.2": {
+  "2.18.1": {
+    bid: "5134D58C555B8E71",
+    flowers: { ...FLOWERS },
+    growStates: { ...GROW_STATES },
+    colors: { ...COLORS, "Brown": 30 },
+    patterns: { ...PATTERNS },
+    effects: { ...EFFECTS },
+    compatibility: PATTERN_COMPAT_BY_VERSION["2.18.1"],
+    effectsCompatibility: VERIFIED_EFFECT_COMPATIBILITY,
+    template: [
+      "[CHEAT_NAME]",
+      "08000000 0864CE10 D0016300 AA1E03FD",
+      "08000000 0864CE18 97A95DDD F945A000",
+      "08000000 0864CE20 F9401C00 F9401800",
+      "08000000 0864CE28 D10083FF F9401400",
+      "08000000 0864CE30 910A0001 910003E8",
+      "08000000 0864CE38 F94003E0 968C105A",
+      "08000000 0864CE40 F9405013 96AE88BC",
+      "08000000 0864CE48 {FLOWER_MOVK} {FLOWER_MOVZ}",
+      "08000000 0864CE50 96A6F1F3 2A1403E0",
+      "08000000 0864CE58 {BASE_COLOR} {GROW}",
+      "08000000 0864CE60 {SPECIAL} 29022408",
+      "08000000 0864CE68 29032408 {PATTERN_COLOR}",
+      "08000000 0864CE70 AA1303E0 AA0003E2",
+      "08000000 0864CE78 {QUANTITY} 2A1403E1",
+      "08000000 0864CE80 968AC6E3 52800044",
+      "08000000 0864CE88 968C10CD 910003E0",
+      "08000000 0864CE90 A9434FF4 910083FF",
+      "04000000 0864CE98 D65F03A0",
+      "04000000 038ADCA4 95367C5B"
+    ]
+  },
+  "2.17.2": {
     bid: "13794F88E5BBC1D6",
+    flowers: { ...FLOWERS },
+    growStates: { ...GROW_STATES },
+    colors: { ...COLORS },
+    patterns: { ...PATTERNS },
+    effects: { ...EFFECTS },
+    compatibility: null,
+    effectsCompatibility: null,
     template: [
       "[CHEAT_NAME]",
       "08000000 083BBD8C F0015C40 AA1E03FD",
@@ -148,6 +195,13 @@ const VERSION_PROFILES = {
   },
   "2.17.1": {
     bid: "47797CD0C232F47C",
+    flowers: { ...FLOWERS },
+    growStates: { ...GROW_STATES },
+    colors: { ...COLORS },
+    patterns: { ...PATTERNS },
+    effects: { ...EFFECTS },
+    compatibility: PATTERN_COMPAT_BY_VERSION["2.17.1"],
+    effectsCompatibility: VERIFIED_EFFECT_COMPATIBILITY,
     template: [
       "[CHEAT_NAME]",
       "08000000 083B178C F0015C20 AA1E03FD",
@@ -207,7 +261,9 @@ function selectedVersion() {
 }
 
 function selectedProfile() {
-  return VERSION_PROFILES[selectedVersion()];
+  const profile = VERSION_PROFILES[selectedVersion()];
+  if (!profile) throw new Error("Unsupported game version.");
+  return profile;
 }
 
 function hex8(value) {
@@ -232,17 +288,33 @@ function fillSelect(select, entries, selected) {
     option.selected = entry === selected;
     select.appendChild(option);
   }
+
+  if (!entries.includes(selected)) select.value = entries[0] ?? "";
 }
 
 function compactName(value) {
-  const aliases = {
-    "Grown Troweled": "Troweled"
-  };
-
+  const aliases = { "Grown Troweled": "Troweled" };
   return (aliases[value] ?? value).replace(/\s+/g, "");
 }
 
+function updateVersionControls(initial = false) {
+  const profile = selectedProfile();
+  const fields = [
+    ["flower", Object.keys(profile.flowers), DEFAULTS.flower],
+    ["grow", Object.keys(profile.growStates), DEFAULTS.grow],
+    ["baseColor", Object.keys(profile.colors).filter((c) => c !== "None"), DEFAULTS.baseColor],
+    ["patternColor", Object.keys(profile.colors), DEFAULTS.patternColor]
+  ];
+
+  for (const [id, entries, fallback] of fields) {
+    fillSelect($(id), entries, initial ? fallback : $(id).value);
+  }
+
+  updateSpecialControls();
+}
+
 function updateSpecialControls() {
+  const profile = selectedProfile();
   const type = $("specialType").value;
   const special = $("specialValue");
   const patternColor = $("patternColor");
@@ -256,13 +328,13 @@ function updateSpecialControls() {
   }
 
   if (type === "pattern") {
-    fillSelect(special, Object.keys(PATTERNS), "Ombre");
+    fillSelect(special, Object.keys(profile.patterns), special.value || "Ombre");
     special.disabled = false;
     patternColor.disabled = false;
     return;
   }
 
-  fillSelect(special, Object.keys(EFFECTS), "Glitter");
+  fillSelect(special, Object.keys(profile.effects), special.value || "Glitter");
   special.disabled = false;
   patternColor.value = "None";
   patternColor.disabled = true;
@@ -286,33 +358,42 @@ function buildCheatName() {
   }
 
   parts.push(`x${$("quantity").value}`);
-
   return `[AddCustomFlower ${parts.join("-")}]`;
 }
 
+function requireIndex(map, name) {
+  if (!Object.hasOwn(map, name) || !Number.isInteger(map[name])) {
+    throw new Error(`Missing or invalid value: ${name}`);
+  }
+  return map[name];
+}
+
 function buildReplacementMap() {
-  const flowerId = FLOWERS[$("flower").value] >>> 0;
+  const profile = selectedProfile();
+  const flowerId = requireIndex(profile.flowers, $("flower").value) >>> 0;
   const flowerLow = flowerId & 0xFFFF;
   const flowerHigh = (flowerId >>> 16) & 0xFFFF;
-
   const specialType = $("specialType").value;
   let specialIndex = 0;
 
   if (specialType === "pattern") {
-    specialIndex = PATTERNS[$("specialValue").value];
+    specialIndex = requireIndex(profile.patterns, $("specialValue").value);
   } else if (specialType === "effect") {
-    specialIndex = EFFECTS[$("specialValue").value];
+    specialIndex = requireIndex(profile.effects, $("specialValue").value);
+  } else if (specialType !== "none") {
+    throw new Error("Unsupported special type.");
   }
 
-  const patternColorIndex =
-    specialType === "pattern" ? COLORS[$("patternColor").value] : 0;
+  const patternColorIndex = specialType === "pattern"
+    ? requireIndex(profile.colors, $("patternColor").value)
+    : 0;
 
   return {
     "[CHEAT_NAME]": buildCheatName(),
     "{FLOWER_MOVZ}": hex8(movzW(20, flowerLow)),
     "{FLOWER_MOVK}": hex8(movkW16(20, flowerHigh)),
-    "{GROW}": hex8(movzW(8, GROW_STATES[$("grow").value])),
-    "{BASE_COLOR}": hex8(movzW(9, COLORS[$("baseColor").value])),
+    "{GROW}": hex8(movzW(8, requireIndex(profile.growStates, $("grow").value))),
+    "{BASE_COLOR}": hex8(movzW(9, requireIndex(profile.colors, $("baseColor").value))),
     "{SPECIAL}": hex8(movzW(8, specialIndex)),
     "{PATTERN_COLOR}": hex8(movzW(9, patternColorIndex)),
     "{QUANTITY}": hex8(movzW(3, Number($("quantity").value)))
@@ -322,16 +403,18 @@ function buildReplacementMap() {
 function buildFullCode() {
   const profile = selectedProfile();
   const replacements = buildReplacementMap();
+  const output = profile.template.map((line) => {
+    let text = line;
+    for (const [token, value] of Object.entries(replacements)) {
+      text = text.replaceAll(token, value);
+    }
+    return text;
+  }).join("\n");
 
-  return profile.template
-    .map((line) => {
-      let output = line;
-      for (const [token, value] of Object.entries(replacements)) {
-        output = output.replaceAll(token, value);
-      }
-      return output;
-    })
-    .join("\n");
+  if (/\{[A-Z_]+\}/.test(output)) {
+    throw new Error("An instruction template contains an unresolved token.");
+  }
+  return output;
 }
 
 function updateCompatibility() {
@@ -344,30 +427,30 @@ function updateCompatibility() {
   }
 
   box.hidden = false;
+  const profile = selectedProfile();
+  const table = type === "effect" ? profile.effectsCompatibility : profile.compatibility;
+  const label = type === "effect" ? "Effect" : "Pattern";
 
-  if (type === "effect") {
-    box.className = "compatibility is-good";
-    box.textContent = "Effect compatibility: listed for all flower types in the selected version's internal CrosstypePatterns data.";
-    return;
-  }
-
-  const version = selectedVersion();
-  const compatTable = PATTERN_COMPAT_BY_VERSION[version];
-
-  if (!compatTable) {
+  if (!table) {
     box.className = "compatibility is-warn";
-    box.textContent = "Pattern compatibility reference data is not available for this game version.";
+    box.textContent = `${label} compatibility has not been verified for this version. The code can still generate it.`;
     return;
   }
 
   const flower = $("flower").value;
-  const pattern = $("specialValue").value;
-  const listed = (compatTable[flower] ?? []).includes(pattern);
+  const special = $("specialValue").value;
+  const available = table[flower];
+  if (!available) {
+    box.className = "compatibility is-warn";
+    box.textContent = `${label} compatibility is unknown for ${flower} in this version.`;
+    return;
+  }
 
+  const listed = available.includes(special);
   box.className = `compatibility ${listed ? "is-good" : "is-warn"}`;
   box.textContent = listed
-    ? `${pattern} is listed for ${flower} in the selected version's internal CrosstypePatterns data.`
-    : `${pattern} is not listed for ${flower} in the selected version's internal CrosstypePatterns data. The code can still generate it.`;
+    ? `${special} is listed for ${flower} in this version's internal CrosstypePatterns data.`
+    : `${special} is not listed for ${flower} in this version's internal CrosstypePatterns data. The code can still generate it.`;
 }
 
 function render() {
@@ -398,38 +481,41 @@ async function copyCode() {
   }, 1300);
 }
 
+function validateProfiles() {
+  for (const profile of Object.values(VERSION_PROFILES)) {
+    if (!/^[A-F0-9]{16}$/.test(profile.bid) || profile.template.length !== 20) {
+      throw new Error("Invalid BID or instruction template.");
+    }
+    for (const [map, maximum] of [
+      [profile.flowers, 0xFFFFFFFF],
+      [profile.growStates, 0xFFFF],
+      [profile.colors, 0xFFFF],
+      [profile.patterns, 0xFFFF],
+      [profile.effects, 0xFFFF]
+    ]) {
+      if (!map || Object.values(map).some((value) => !Number.isInteger(value) || value < 0 || value > maximum)) {
+        throw new Error("Invalid version-specific flower data.");
+      }
+    }
+  }
+}
+
 function init() {
+  validateProfiles();
   const versions = supportedVersions();
   fillSelect($("gameVersion"), versions, versions[0]);
-
-  fillSelect($("flower"), Object.keys(FLOWERS), DEFAULTS.flower);
-  fillSelect($("grow"), Object.keys(GROW_STATES), DEFAULTS.grow);
-  fillSelect(
-    $("baseColor"),
-    Object.keys(COLORS).filter((color) => color !== "None"),
-    DEFAULTS.baseColor
-  );
-  fillSelect($("patternColor"), Object.keys(COLORS), DEFAULTS.patternColor);
   fillSelect($("quantity"), ["1", "99", "999"], String(DEFAULTS.quantity));
-
   $("specialType").value = DEFAULTS.specialType;
-  updateSpecialControls();
+  updateVersionControls(true);
   render();
 
   for (const id of [
-    "gameVersion",
-    "flower",
-    "grow",
-    "baseColor",
-    "specialType",
-    "specialValue",
-    "patternColor",
-    "quantity"
+    "gameVersion", "flower", "grow", "baseColor", "specialType",
+    "specialValue", "patternColor", "quantity"
   ]) {
     $(id).addEventListener("change", () => {
-      if (id === "specialType") {
-        updateSpecialControls();
-      }
+      if (id === "gameVersion") updateVersionControls();
+      if (id === "specialType") updateSpecialControls();
       render();
     });
   }
