@@ -433,6 +433,11 @@ function updateCompatibility() {
   const sameColorMessage = sameColor
     ? "Base Color and Pattern Color are the same. The pattern may appear as a solid color."
     : "";
+  const noPatternColor = type === "pattern" && profile.colors[$("patternColor").value] === 0;
+  const noPatternColorMessage = noPatternColor
+    ? "Pattern Color is None. The selected pattern has no secondary color and may not display as intended."
+    : "";
+  const advisoryMessages = [sameColorMessage, noPatternColorMessage].filter(Boolean);
   const table = type === "effect" ? profile.effectsCompatibility : profile.compatibility;
   const label = type === "effect" ? "Effect" : "Pattern";
 
@@ -440,8 +445,8 @@ function updateCompatibility() {
     box.className = "compatibility is-warn";
     box.textContent = [
       `${label} compatibility has not been verified for this version. The code can still generate it.`,
-      sameColorMessage
-    ].filter(Boolean).join(" ");
+      ...advisoryMessages
+    ].join(" ");
     return;
   }
 
@@ -452,17 +457,17 @@ function updateCompatibility() {
     box.className = "compatibility is-warn";
     box.textContent = [
       `${label} compatibility is unknown for ${flower} in this version.`,
-      sameColorMessage
-    ].filter(Boolean).join(" ");
+      ...advisoryMessages
+    ].join(" ");
     return;
   }
 
   const listed = available.includes(special);
-  box.className = `compatibility ${listed && !sameColor ? "is-good" : "is-warn"}`;
+  box.className = `compatibility ${listed && advisoryMessages.length === 0 ? "is-good" : "is-warn"}`;
   const compatibilityMessage = listed
     ? `${special} is listed for ${flower} in this version's internal CrosstypePatterns data.`
     : `${special} is not listed for ${flower} in this version's internal CrosstypePatterns data. The code can still generate it.`;
-  box.textContent = [compatibilityMessage, sameColorMessage].filter(Boolean).join(" ");
+  box.textContent = [compatibilityMessage, ...advisoryMessages].join(" ");
 }
 
 function render() {
