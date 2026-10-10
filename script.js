@@ -131,6 +131,7 @@ const VERSION_PROFILES = {
   "3.0.0": {
     bid: "D0E7F0B11DADACFF",
     experimental: true,
+    expectedTemplateLines: 22,
     flowers: { ...FLOWERS },
     growStates: { ...GROW_STATES },
     colors: { ...COLORS, "Brown": 30 },
@@ -140,7 +141,7 @@ const VERSION_PROFILES = {
     effectsCompatibility: null,
     template: [
       "[CHEAT_NAME]",
-      "08000000 0880A8A8 B0016740 AA1E03FD",
+      "08000000 0880A8A8 B0016740 F90003E0",
       "08000000 0880A8B0 96FA6FF3 F9458400",
       "08000000 0880A8B8 F9401C00 F9401800",
       "08000000 0880A8C0 D10083FF F9401400",
@@ -156,8 +157,10 @@ const VERSION_PROFILES = {
       "08000000 0880A910 {QUANTITY} 2A1403E1",
       "08000000 0880A918 96BFC689 52800044",
       "08000000 0880A920 968528DB 910003E0",
-      "08000000 0880A928 A9434FF4 910083FF",
-      "04000000 0880A930 D65F03A0",
+      "08000000 0880A928 F94003E0 910083FF",
+      "08000000 0880A930 F94013F5 A9434FF4",
+      "08000000 0880A938 910103FF A9417BFD",
+      "04000000 0880A940 D65F03C0",
       "04000000 03E97614 9525CCA5"
     ]
   },
@@ -533,7 +536,7 @@ async function copyCode() {
 
 function validateProfiles() {
   for (const profile of Object.values(VERSION_PROFILES)) {
-    if (!/^[A-F0-9]{16}$/.test(profile.bid) || profile.template.length !== 20) {
+    if (!/^[A-F0-9]{16}$/.test(profile.bid) || profile.template.length !== (profile.expectedTemplateLines ?? 20)) {
       throw new Error("Invalid BID or instruction template.");
     }
     for (const [map, maximum] of [
