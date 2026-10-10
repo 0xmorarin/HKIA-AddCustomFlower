@@ -63,6 +63,7 @@ for(const [address,ins] of words){
 }
 assert.deepEqual(calls,expectedCalls,"Six relocated calls must preserve targets");
 assert.equal(words.get(0x0880A8C4),0xD10103FF,"Allocate 64 bytes for 40-byte UsingServerUpdateContext and out int");
+assert.equal(words.get(0x0880A8CC),0x910A8001,"v3 IslandManager.tempCommands is +0x2A0, NOT the events field at +0x280");
 assert.equal(words.get(0x0880A91C),0x9100C3E5,"X5 must point to valid out uniqueId at SP+0x30");
 assert.equal(words.get(0x0880A92C),0x910103FF,"Deallocate same 64-byte stack frame");
 assert.equal(words.get(0x0880A930),0xA9434FF4,"Execute original HUD displaced instruction");
@@ -72,6 +73,6 @@ assert.ok(caveEnd<=0x0880AA48,"Keep frozen Stage58 shared overlay unchanged");
 const raw=Buffer.alloc(36*4);
 [...words.entries()].sort((a,b)=>a[0]-b[0]).forEach(([addr,ins],i)=>raw.writeUInt32LE(ins,i*4));
 assert.equal(createHash("sha256").update(raw).digest("hex"),
- "8cc3cbad82ad63069bab1604921b061bb03f0881a8e09f748a909ed8c5715261",
+ "d09ed89d2fb48312afe44c3c526a0fa26dd96084d7e526051bed59b24ad182c7",
  "Canonical Stage58 Rose-Plucked-Red-x99 source bytes differ");
 console.log("PASS: v3.0.0 Stage58 cave, AddUniqueItem out pointer, stack frame, Inventory, 6 BLs and HUD link");
