@@ -1,0 +1,69 @@
+// Source-only regression guard for HKIA Switch v3.0.0 / BID D0E7F0B11DADACFF.
+// Run from the repository root: node tests/verify-v300-cave.mjs
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+
+const source = readFileSync(new URL("../script.js", import.meta.url), "utf8");
+const begin = source.indexOf('  "3.0.0": {');
+const next = source.indexOf('  "2.18.1": {', begin);
+assert.ok(begin >= 0 && next > begin, "Version profile missing");
+const v3 = source.slice(begin, next);
+assert.match(v3, /bid:\s*"D0E7F0B11DADACFF"/);
+const template = [...v3.matchAll(/"((?:08000000|04000000) [0-9A-F]{8} [A-Z0-9{}_]+(?: [A-Z0-9{}_]+)?)"/g)].map(x => x[1]);
+assert.equal(template.length, 19, "Expected 17 paired cave writes, one trailing word and one hook");
+
+const replacements = {
+  "{FLOWER_MOVZ}": "528F4FF4", // Rose: 0x5CA47A7F
+  "{FLOWER_MOVK}": "72AB9494",
+  "{GROW}": "528000C8",       // Plucked
+  "{BASE_COLOR}": "52800029", // Red
+  "{SPECIAL}": "52800008",
+  "{PATTERN_COLOR}": "52800009",
+  "{QUANTITY}": "52800C63"   // 99
+};
+const caveStart=0x0880A8A8, caveEnd=0x0880A934;
+const words=new Map();
+const hook=[];
+for(const entry of template){
+  let line=entry;
+  for(const [token,value] of Object.entries(replacements)) line=line.replaceAll(token,value);
+  assert.ok(!line.includes("{"), "Unresolved token: "+entry);
+  const [kind,addrStr,...rest]=line.split(" ");
+  const address=parseInt(addrStr,16);
+  if(address<caveStart){hook.push([address,rest]);continue;}
+  assert.ok(address>=caveStart && address<0x0880AEC8, "Outside the shared variable cave");
+  if(kind==="08000000"){
+    assert.equal(rest.length,2);
+    words.set(address,parseInt(rest[1],16));   // Atmosphere 080: LOW32 on the left in RAM
+    words.set(address+4,parseInt(rest[0],16)); // HIGH32 at +4
+  }else{
+    assert.equal(kind,"04000000");
+    words.set(address,parseInt(rest[0],16));
+  }
+}
+assert.deepEqual(hook,[[0x03E97614,["9525CCA5"]]]);
+assert.equal(words.size,35);
+for(let i=0;i<35;i++) assert.ok(words.has(caveStart+i*4),"Missing cave word");
+assert.equal(caveStart+35*4,caveEnd);
+assert.equal(words.get(0x0880A8DC),0xF9405C13,"v3 Inventory field must be +0xB8");
+
+const expectedCalls=new Map([
+  [0x0880A8B4,0x046A6880],[0x0880A8D0,0x02954A70],
+  [0x0880A8D8,0x02ED9FA0],[0x0880A8EC,0x0498D390],
+  [0x0880A91C,0x037FC340],[0x0880A924,0x02954C90]
+]);
+const calls=new Map();
+for(const [address,ins] of words){
+  if((ins>>>26)!==0b100101)continue;
+  let imm=ins&0x03ffffff;
+  if(imm&0x02000000)imm-=0x04000000;
+  calls.set(address,address+imm*4);
+}
+assert.deepEqual(calls,expectedCalls,"Six relocated calls must preserve targets");
+const raw=Buffer.alloc(35*4);
+[...words.entries()].sort((a,b)=>a[0]-b[0]).forEach(([addr,ins],i)=>raw.writeUInt32LE(ins,i*4));
+assert.equal(createHash("sha256").update(raw).digest("hex"),
+ "1b2c3d79ac899fd5a42f751624d99d254a72dc76b47808c110449cbb2a7fe9f0",
+ "Canonical Stage58 Rose-Plucked-Red-x99 source bytes differ");
+console.log("PASS: v3.0.0 Stage58 cave, Inventory, 6 BLs, HUD hook and source fingerprint");
