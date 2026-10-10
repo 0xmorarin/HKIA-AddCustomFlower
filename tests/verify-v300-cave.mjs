@@ -11,8 +11,8 @@ assert.ok(begin >= 0 && next > begin, "Version profile missing");
 const v3 = source.slice(begin, next);
 assert.match(source, /"Rose": 0x5CA47A7F/, "Rose must use the source-verified v3.0.0 item ID");
 assert.match(v3, /bid:\s*"D0E7F0B11DADACFF"/);
-assert.match(source, /return `\\[\\$\\{parts\\.join\\("-"\\)\\}\\]`;/, "Generated cheat name must contain only selected attributes");
-assert.doesNotMatch(source, /return `\\[AddCustomFlower /, "Generated cheat name must not include redundant AddCustomFlower prefix");
+assert.match(source, /return `\[\$\{parts\.join\("-"\)\}\]`;/, "Generated cheat name must contain only selected attributes");
+assert.doesNotMatch(source, /return `\[AddCustomFlower /, "Generated cheat name must not include redundant AddCustomFlower prefix");
 assert.match(source, /const VERIFIED_PATTERN_COMPATIBILITY = \{/, "Shared pattern compatibility table must exist");
 assert.equal((source.match(/compatibility: VERIFIED_PATTERN_COMPATIBILITY/g) || []).length, 4,
   "All supported versions must share the canonical pattern compatibility table");
