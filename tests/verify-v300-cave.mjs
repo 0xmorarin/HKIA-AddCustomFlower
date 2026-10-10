@@ -12,7 +12,7 @@ const v3 = source.slice(begin, next);
 assert.match(source, /"Rose": 0x5CA47A7F/, "Rose must use the source-verified v3.0.0 item ID");
 assert.match(v3, /bid:\s*"D0E7F0B11DADACFF"/);
 const template = [...v3.matchAll(/"((?:08000000|04000000) [0-9A-F]{8} [A-Z0-9{}_]+(?: [A-Z0-9{}_]+)?)"/g)].map(x => x[1]);
-assert.equal(template.length, 19, "Expected 17 paired cave writes, one trailing word and one hook");
+assert.equal(template.length, 21, "Expected 19 paired cave writes, one trailing word and one hook");
 
 const replacements = {
   "{FLOWER_MOVZ}": "528F4FF4", // Rose: 0x5CA47A7F
@@ -23,7 +23,7 @@ const replacements = {
   "{PATTERN_COLOR}": "52800009",
   "{QUANTITY}": "52800C63"   // 99
 };
-const caveStart=0x0880A8A8, caveEnd=0x0880A934;
+const caveStart=0x0880A8A8, caveEnd=0x0880A944;
 const words=new Map();
 const hook=[];
 for(const entry of template){
@@ -44,9 +44,9 @@ for(const entry of template){
   }
 }
 assert.deepEqual(hook,[[0x03E97614,["9525CCA5"]]]);
-assert.equal(words.size,35);
-for(let i=0;i<35;i++) assert.ok(words.has(caveStart+i*4),"Missing cave word");
-assert.equal(caveStart+35*4,caveEnd);
+assert.equal(words.size,39);
+for(let i=0;i<39;i++) assert.ok(words.has(caveStart+i*4),"Missing cave word");
+assert.equal(caveStart+39*4,caveEnd);
 assert.equal(words.get(0x0880A8DC),0xF9405C13,"v3 Inventory field must be +0xB8");
 
 const expectedCalls=new Map([
@@ -62,9 +62,16 @@ for(const [address,ins] of words){
   calls.set(address,address+imm*4);
 }
 assert.deepEqual(calls,expectedCalls,"Six relocated calls must preserve targets");
-const raw=Buffer.alloc(35*4);
+assert.equal(words.get(caveStart),0xF90003E0,"Save original x0 before calling native methods");
+assert.equal(words.get(0x0880A92C),0xF94003E0,"Restore original x0 after native calls");
+assert.deepEqual([...Array(5)].map((_,i)=>words.get(0x0880A930+i*4)),
+  [0xA9434FF4,0xF94013F5,0xA9417BFD,0x910103FF,0xD65F03C0],
+  "Full 5-instruction original native HUD epilogue required");
+assert.ok(![...words.values()].includes(0xD65F03A0), "RET X29 corrupts the caller frame");
+assert.ok(caveEnd<=0x0880AA48, "Flower cave must stay inside frozen Stage58 overlay");
+const raw=Buffer.alloc(39*4);
 [...words.entries()].sort((a,b)=>a[0]-b[0]).forEach(([addr,ins],i)=>raw.writeUInt32LE(ins,i*4));
 assert.equal(createHash("sha256").update(raw).digest("hex"),
- "bee17e70596fdb28bce3e292e18c81ea2b168581f2ecd08c9917ef04d2375d29",
+ "52401018069549fb29017aade815492eccdc89db3b3a97b9b11f150029242160",
  "Canonical Stage58 Rose-Plucked-Red-x99 source bytes differ");
-console.log("PASS: v3.0.0 Stage58 cave, Inventory, 6 BLs, HUD hook and source fingerprint");
+console.log("PASS: v3.0.0 Stage58 cave, native epilogue, X0 preservation, Inventory, 6 BLs and source fingerprint");
