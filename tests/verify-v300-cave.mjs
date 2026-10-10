@@ -64,6 +64,9 @@ for(const [address,ins] of words){
 assert.deepEqual(calls,expectedCalls,"Six relocated calls must preserve targets");
 assert.equal(words.get(0x0880A8C4),0xD10103FF,"Allocate 64 bytes for 40-byte UsingServerUpdateContext and out int");
 assert.equal(words.get(0x0880A8CC),0x910A8001,"v3 IslandManager.tempCommands is +0x2A0, NOT the events field at +0x280");
+assert.deepEqual([words.get(0x0880A8B8),words.get(0x0880A8BC),words.get(0x0880A8C0)],
+ [0xF9401800,0xF9401C00,0xF9401400],
+ "GameSessionManager.model +0x30 -> GameSessionModel.session +0x38 -> GameSession.islandManager +0x28");
 assert.equal(words.get(0x0880A91C),0x9100C3E5,"X5 must point to valid out uniqueId at SP+0x30");
 assert.equal(words.get(0x0880A92C),0x910103FF,"Deallocate same 64-byte stack frame");
 assert.equal(words.get(0x0880A930),0xA9434FF4,"Execute original HUD displaced instruction");
