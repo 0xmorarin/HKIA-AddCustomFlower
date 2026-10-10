@@ -1,0 +1,26 @@
+name: Verify generator code caves
+
+on:
+  push:
+    branches:
+      - main
+      - fix/v300-flower-addunique-outid-20261010
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  source-static:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Configure Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check generator syntax
+        run: node --check script.js
+      - name: Validate v3.0.0 code cave and machine words
+        run: node tests/verify-v300-cave.mjs
