@@ -9,6 +9,7 @@ const begin = source.indexOf('  "3.0.0": {');
 const next = source.indexOf('  "2.18.1": {', begin);
 assert.ok(begin >= 0 && next > begin, "Version profile missing");
 const v3 = source.slice(begin, next);
+assert.match(source, /"Rose": 0x5CA47A7F/, "Rose must use the source-verified v3.0.0 item ID");
 assert.match(v3, /bid:\s*"D0E7F0B11DADACFF"/);
 const template = [...v3.matchAll(/"((?:08000000|04000000) [0-9A-F]{8} [A-Z0-9{}_]+(?: [A-Z0-9{}_]+)?)"/g)].map(x => x[1]);
 assert.equal(template.length, 19, "Expected 17 paired cave writes, one trailing word and one hook");
@@ -64,6 +65,6 @@ assert.deepEqual(calls,expectedCalls,"Six relocated calls must preserve targets"
 const raw=Buffer.alloc(35*4);
 [...words.entries()].sort((a,b)=>a[0]-b[0]).forEach(([addr,ins],i)=>raw.writeUInt32LE(ins,i*4));
 assert.equal(createHash("sha256").update(raw).digest("hex"),
- "1b2c3d79ac899fd5a42f751624d99d254a72dc76b47808c110449cbb2a7fe9f0",
+ "bee17e70596fdb28bce3e292e18c81ea2b168581f2ecd08c9917ef04d2375d29",
  "Canonical Stage58 Rose-Plucked-Red-x99 source bytes differ");
 console.log("PASS: v3.0.0 Stage58 cave, Inventory, 6 BLs, HUD hook and source fingerprint");
