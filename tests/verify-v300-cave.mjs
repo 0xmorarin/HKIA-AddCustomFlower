@@ -11,6 +11,8 @@ assert.ok(begin >= 0 && next > begin, "Version profile missing");
 const v3 = source.slice(begin, next);
 assert.match(source, /"Rose": 0x5CA47A7F/, "Rose must use the source-verified v3.0.0 item ID");
 assert.match(v3, /bid:\s*"D0E7F0B11DADACFF"/);
+assert.match(source, /return `\\[\\$\\{parts\\.join\\("-"\\)\\}\\]`;/, "Generated cheat name must contain only selected attributes");
+assert.doesNotMatch(source, /return `\\[AddCustomFlower /, "Generated cheat name must not include redundant AddCustomFlower prefix");
 const template = [...v3.matchAll(/"((?:08000000|04000000) [0-9A-F]{8} [A-Z0-9{}_]+(?: [A-Z0-9{}_]+)?)"/g)].map(x => x[1]);
 assert.equal(template.length, 19, "Expected 17 paired cave writes, one trailing word and one hook");
 
