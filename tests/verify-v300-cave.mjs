@@ -77,5 +77,5 @@ assert.ok(caveEnd<=0x0880AA48,"Keep frozen Stage58 shared overlay unchanged");
 const raw=Buffer.alloc(35*4);
 [...words.entries()].sort((a,b)=>a[0]-b[0]).forEach(([addr,ins],i)=>raw.writeUInt32LE(ins,i*4));
 const fingerprint=createHash("sha256").update(raw).digest("hex");
-console.log("FINGERPRINT:",fingerprint);
+assert.equal(fingerprint,"4adbbe6b76020fa8266a1dc43349d6bee6837215ed4717d0c5367881032d3456","Stage95-aligned 35-word payload fingerprint changed");
 console.log("PASS: Stage95-aligned v3.0.0 Flower cave, three migration deltas, 6 BLs and HUD link");
