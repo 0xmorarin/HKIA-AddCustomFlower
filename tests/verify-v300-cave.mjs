@@ -23,7 +23,7 @@ const replacements = {
   "{PATTERN_COLOR}": "52800009",
   "{QUANTITY}": "52800C63"   // 99
 };
-const caveStart=0x0880A8A8, caveEnd=0x0880A934;
+const caveStart=0x0880A8A8, caveEnd=0x0880A938;
 const words=new Map();
 const hook=[];
 for(const entry of template){
@@ -44,15 +44,15 @@ for(const entry of template){
   }
 }
 assert.deepEqual(hook,[[0x03E97614,["9525CCA5"]]]);
-assert.equal(words.size,35);
-for(let i=0;i<35;i++) assert.ok(words.has(caveStart+i*4),"Missing cave word");
-assert.equal(caveStart+35*4,caveEnd);
+assert.equal(words.size,36);
+for(let i=0;i<36;i++) assert.ok(words.has(caveStart+i*4),"Missing cave word");
+assert.equal(caveStart+36*4,caveEnd);
 assert.equal(words.get(0x0880A8DC),0xF9405C13,"v3 Inventory field must be +0xB8");
 
 const expectedCalls=new Map([
   [0x0880A8B4,0x046A6880],[0x0880A8D0,0x02954A70],
   [0x0880A8D8,0x02ED9FA0],[0x0880A8EC,0x0498D390],
-  [0x0880A91C,0x037FC340],[0x0880A924,0x02954C90]
+  [0x0880A920,0x037FC340],[0x0880A928,0x02954C90]
 ]);
 const calls=new Map();
 for(const [address,ins] of words){
@@ -62,9 +62,16 @@ for(const [address,ins] of words){
   calls.set(address,address+imm*4);
 }
 assert.deepEqual(calls,expectedCalls,"Six relocated calls must preserve targets");
-const raw=Buffer.alloc(35*4);
+assert.equal(words.get(0x0880A8C4),0xD10103FF,"Allocate 64 bytes for 40-byte UsingServerUpdateContext and out int");
+assert.equal(words.get(0x0880A91C),0x9100C3E5,"X5 must point to valid out uniqueId at SP+0x30");
+assert.equal(words.get(0x0880A92C),0x910103FF,"Deallocate same 64-byte stack frame");
+assert.equal(words.get(0x0880A930),0xA9434FF4,"Execute original HUD displaced instruction");
+assert.equal(words.get(0x0880A934),0xD65F03A0,"Return to native HUD epilogue through saved X29 link");
+assert.equal(words.get(0x0880A8A8),0xAA1E03FD,"Keep native branch-link return saved in X29");
+assert.ok(caveEnd<=0x0880AA48,"Keep frozen Stage58 shared overlay unchanged");
+const raw=Buffer.alloc(36*4);
 [...words.entries()].sort((a,b)=>a[0]-b[0]).forEach(([addr,ins],i)=>raw.writeUInt32LE(ins,i*4));
 assert.equal(createHash("sha256").update(raw).digest("hex"),
- "bee17e70596fdb28bce3e292e18c81ea2b168581f2ecd08c9917ef04d2375d29",
+ "8cc3cbad82ad63069bab1604921b061bb03f0881a8e09f748a909ed8c5715261",
  "Canonical Stage58 Rose-Plucked-Red-x99 source bytes differ");
-console.log("PASS: v3.0.0 Stage58 cave, Inventory, 6 BLs, HUD hook and source fingerprint");
+console.log("PASS: v3.0.0 Stage58 cave, AddUniqueItem out pointer, stack frame, Inventory, 6 BLs and HUD link");
