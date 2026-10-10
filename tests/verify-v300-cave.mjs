@@ -62,9 +62,20 @@ for(const [address,ins] of words){
   calls.set(address,address+imm*4);
 }
 assert.deepEqual(calls,expectedCalls,"Six relocated calls must preserve targets");
+assert.equal(words.get(0x0880A8C4),0xD10083FF,"Preserve v2.18.1-proven 0x20 scratch design");
+assert.equal(words.get(0x0880A8CC),0x910A8001,"v3 IslandManager.tempCommands is +0x2A0, NOT the events field at +0x280");
+assert.equal(words.get(0x0880A8AC),0xD0016780,"v3 GameSessionManager get_Instance MethodInfo ADRP must target 0x0B4FC000");
+assert.equal(words.get(0x0880A8B0),0xF9460800,"v3 GameSessionManager get_Instance MethodInfo LDR must select 0x0B4FCC10");
+assert.deepEqual([words.get(0x0880A8B8),words.get(0x0880A8BC),words.get(0x0880A8C0)],
+ [0xF9401800,0xF9401C00,0xF9401400],
+ "GameSessionManager.model +0x30 -> GameSessionModel.session +0x38 -> GameSession.islandManager +0x28");
+assert.equal(words.get(0x0880A928),0x910083FF,"Preserve v2.18.1-proven 0x20 scratch teardown");
+assert.equal(words.get(0x0880A92C),0xA9434FF4,"Execute original HUD displaced instruction");
+assert.equal(words.get(0x0880A930),0xD65F03A0,"Return to native HUD epilogue through saved X29 link");
+assert.equal(words.get(0x0880A8A8),0xAA1E03FD,"Keep native branch-link return saved in X29");
+assert.ok(caveEnd<=0x0880AA48,"Keep frozen Stage58 shared overlay unchanged");
 const raw=Buffer.alloc(35*4);
 [...words.entries()].sort((a,b)=>a[0]-b[0]).forEach(([addr,ins],i)=>raw.writeUInt32LE(ins,i*4));
-assert.equal(createHash("sha256").update(raw).digest("hex"),
- "bee17e70596fdb28bce3e292e18c81ea2b168581f2ecd08c9917ef04d2375d29",
- "Canonical Stage58 Rose-Plucked-Red-x99 source bytes differ");
-console.log("PASS: v3.0.0 Stage58 cave, Inventory, 6 BLs, HUD hook and source fingerprint");
+const fingerprint=createHash("sha256").update(raw).digest("hex");
+assert.equal(fingerprint,"4adbbe6b76020fa8266a1dc43349d6bee6837215ed4717d0c5367881032d3456","Stage95-aligned 35-word payload fingerprint changed");
+console.log("PASS: Stage95-aligned v3.0.0 Flower cave, three migration deltas, 6 BLs and HUD link");
