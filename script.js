@@ -391,7 +391,7 @@ function buildCheatName() {
   }
 
   parts.push(`x${$("quantity").value}`);
-  return `[AddCustomFlower ${parts.join("-")}]`;
+  return `[${parts.join("-")}]`;
 }
 
 function requireIndex(map, name) {
