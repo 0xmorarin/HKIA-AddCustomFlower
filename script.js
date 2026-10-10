@@ -87,8 +87,7 @@ const EFFECTS = {
   "Sunbeam": 15
 };
 
-const PATTERN_COMPAT_BY_VERSION = {
-  "2.17.1": {
+const VERIFIED_PATTERN_COMPATIBILITY = {
     "Anemone": ["Ombre"],
     "Bellbutton": ["Confetti", "Ombre", "Patch", "Ring", "Speckled", "Striped", "Trim"],
     "Blazebulb": ["Ombre", "Patch", "Ring", "Speckled", "Trim"],
@@ -114,14 +113,7 @@ const PATTERN_COMPAT_BY_VERSION = {
     "Thistle": ["Ombre", "Trim"],
     "Tulias": ["Alternate", "Confetti", "Ombre", "Patch", "Ring", "Speckled", "Striped", "Trim"],
     "Wheatflower": ["Alternate", "Confetti", "Ombre", "Patch", "Ring", "Speckled", "Striped", "Trim"]
-  }
 };
-
-PATTERN_COMPAT_BY_VERSION["2.18.1"] = Object.fromEntries(
-  Object.entries(PATTERN_COMPAT_BY_VERSION["2.17.1"]).map(
-    ([flower, patterns]) => [flower, [...patterns]]
-  )
-);
 
 const VERIFIED_EFFECT_COMPATIBILITY = Object.fromEntries(
   Object.keys(FLOWERS).map((flower) => [flower, Object.keys(EFFECTS)])
@@ -136,8 +128,8 @@ const VERSION_PROFILES = {
     colors: { ...COLORS, "Brown": 30 },
     patterns: { ...PATTERNS },
     effects: { ...EFFECTS },
-    compatibility: null,
-    effectsCompatibility: null,
+    compatibility: VERIFIED_PATTERN_COMPATIBILITY,
+    effectsCompatibility: VERIFIED_EFFECT_COMPATIBILITY,
     template: [
       "[CHEAT_NAME]",
       "08000000 0880A8A8 D0016780 AA1E03FD",
@@ -168,7 +160,7 @@ const VERSION_PROFILES = {
     colors: { ...COLORS, "Brown": 30 },
     patterns: { ...PATTERNS },
     effects: { ...EFFECTS },
-    compatibility: PATTERN_COMPAT_BY_VERSION["2.18.1"],
+    compatibility: VERIFIED_PATTERN_COMPATIBILITY,
     effectsCompatibility: VERIFIED_EFFECT_COMPATIBILITY,
     template: [
       "[CHEAT_NAME]",
@@ -200,8 +192,8 @@ const VERSION_PROFILES = {
     colors: { ...COLORS },
     patterns: { ...PATTERNS },
     effects: { ...EFFECTS },
-    compatibility: null,
-    effectsCompatibility: null,
+    compatibility: VERIFIED_PATTERN_COMPATIBILITY,
+    effectsCompatibility: VERIFIED_EFFECT_COMPATIBILITY,
     template: [
       "[CHEAT_NAME]",
       "08000000 083BBD8C F0015C40 AA1E03FD",
@@ -232,7 +224,7 @@ const VERSION_PROFILES = {
     colors: { ...COLORS },
     patterns: { ...PATTERNS },
     effects: { ...EFFECTS },
-    compatibility: PATTERN_COMPAT_BY_VERSION["2.17.1"],
+    compatibility: VERIFIED_PATTERN_COMPATIBILITY,
     effectsCompatibility: VERIFIED_EFFECT_COMPATIBILITY,
     template: [
       "[CHEAT_NAME]",
@@ -545,6 +537,21 @@ function validateProfiles() {
     ]) {
       if (!map || Object.values(map).some((value) => !Number.isInteger(value) || value < 0 || value > maximum)) {
         throw new Error("Invalid version-specific flower data.");
+      }
+    }
+    for (const [table, allowed] of [
+      [profile.compatibility, profile.patterns],
+      [profile.effectsCompatibility, profile.effects]
+    ]) {
+      const flowers = Object.keys(profile.flowers);
+      if (!table || Object.keys(table).length !== flowers.length || flowers.some((flower) => !Array.isArray(table[flower]))) {
+        throw new Error("Invalid compatibility table coverage.");
+      }
+      for (const flower of flowers) {
+        const values = table[flower];
+        if (new Set(values).size !== values.length || values.some((value) => !Object.hasOwn(allowed, value))) {
+          throw new Error("Invalid compatibility table entry.");
+        }
       }
     }
   }
