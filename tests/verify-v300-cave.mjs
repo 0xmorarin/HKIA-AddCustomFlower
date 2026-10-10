@@ -64,6 +64,8 @@ for(const [address,ins] of words){
 assert.deepEqual(calls,expectedCalls,"Six relocated calls must preserve targets");
 assert.equal(words.get(0x0880A8C4),0xD10103FF,"Allocate 64 bytes for 40-byte UsingServerUpdateContext and out int");
 assert.equal(words.get(0x0880A8CC),0x910A8001,"v3 IslandManager.tempCommands is +0x2A0, NOT the events field at +0x280");
+assert.equal(words.get(0x0880A8AC),0xD0016780,"v3 GameSessionManager get_Instance MethodInfo ADRP must target 0x0B4FC000");
+assert.equal(words.get(0x0880A8B0),0xF9460800,"v3 GameSessionManager get_Instance MethodInfo LDR must select 0x0B4FCC10");
 assert.deepEqual([words.get(0x0880A8B8),words.get(0x0880A8BC),words.get(0x0880A8C0)],
  [0xF9401800,0xF9401C00,0xF9401400],
  "GameSessionManager.model +0x30 -> GameSessionModel.session +0x38 -> GameSession.islandManager +0x28");
@@ -76,6 +78,6 @@ assert.ok(caveEnd<=0x0880AA48,"Keep frozen Stage58 shared overlay unchanged");
 const raw=Buffer.alloc(36*4);
 [...words.entries()].sort((a,b)=>a[0]-b[0]).forEach(([addr,ins],i)=>raw.writeUInt32LE(ins,i*4));
 assert.equal(createHash("sha256").update(raw).digest("hex"),
- "d09ed89d2fb48312afe44c3c526a0fa26dd96084d7e526051bed59b24ad182c7",
+ "da2fed214e94a009e01e406edefaeb63f9284882ad6ae6ef1fefb012ca5e6055",
  "Canonical Stage58 Rose-Plucked-Red-x99 source bytes differ");
 console.log("PASS: v3.0.0 Stage58 cave, AddUniqueItem out pointer, stack frame, Inventory, 6 BLs and HUD link");
