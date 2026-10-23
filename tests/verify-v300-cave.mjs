@@ -14,9 +14,9 @@ assert.match(v3, /bid:\s*"D0E7F0B11DADACFF"/);
 assert.match(source, /return `\[\$\{parts\.join\("-"\)\}\]`;/, "Generated cheat name must contain only selected attributes");
 assert.doesNotMatch(source, /return `\[AddCustomFlower /, "Generated cheat name must not include redundant AddCustomFlower prefix");
 assert.match(source, /const VERIFIED_PATTERN_COMPATIBILITY = \{/, "Shared pattern compatibility table must exist");
-assert.equal((source.match(/compatibility: VERIFIED_PATTERN_COMPATIBILITY/g) || []).length, 4,
+assert.equal((source.match(/compatibility: VERIFIED_PATTERN_COMPATIBILITY/g) || []).length, 5,
   "All supported versions must share the canonical pattern compatibility table");
-assert.equal((source.match(/effectsCompatibility: VERIFIED_EFFECT_COMPATIBILITY/g) || []).length, 4,
+assert.equal((source.match(/effectsCompatibility: VERIFIED_EFFECT_COMPATIBILITY/g) || []).length, 5,
   "All supported versions must share the canonical effect compatibility table");
 assert.doesNotMatch(source, /compatibility:\s*null/, "No supported version may leave pattern compatibility unverified");
 assert.doesNotMatch(source, /effectsCompatibility:\s*null/, "No supported version may leave effect compatibility unverified");
