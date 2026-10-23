@@ -24,3 +24,5 @@ jobs:
         run: node --check script.js
       - name: Validate v3.0.0 code cave and machine words
         run: node tests/verify-v300-cave.mjs
+      - name: Validate v3.0.1 code cave and all flower combinations
+        run: node tests/verify-v301-cave.mjs
