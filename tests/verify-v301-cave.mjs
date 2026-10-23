@@ -99,10 +99,10 @@ for(const flower of Object.keys(prof.flowers)) {
         assert.equal(native.get(0x08839884),movz(9,prof.colors.Blue));
         assert.equal(native.get(0x0883988C),movz(8,special));
         assert.equal(native.get(0x08839890),movz(9,color));
-        assert.equal(native.get(0x088398A0),movz(3,Number(quantity)));
+        assert.equal(native.get(0x088398A4),movz(3,Number(quantity)));
         for(const [addr,word] of native) {
           if([0x08839870,0x08839874,0x08839880,0x08839884,
-              0x0883988C,0x08839890,0x088398A0].includes(addr))continue;
+              0x0883988C,0x08839890,0x088398A4].includes(addr))continue;
           assert.equal(word,rootWords.get(addr),"Unexpected modification at "+addr.toString(16));
         }
         scenarios++;
